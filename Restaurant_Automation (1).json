@@ -1,0 +1,308 @@
+{
+  "name": "Restaurant_Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=answer to this{{ $json.message.text }} as a human also use the googlesheets data to answer faqs and menu related questions if order details colected create a table in order taking  spreedsheet and add the details and thank the customer. if user asks questions not metioned in faqs answer by your own\n\n",
+        "options": {
+          "systemMessage": "You are the AI Order Assistant for a restaurant called “Smart Bites.” \nYour job is to talk with customers naturally, politely, and helpfully—just like a trained human customer support agent.\n\n---\n\n### 📌 Your Knowledge Base\nYou have access to the restaurant Menu, FAQs, Customers, Orders, and Riders from connected Google Sheets.\n\nYou MUST use this knowledge base for:\n- Menu items, prices, variations, availability\n- Delivery radius, timings, policies, and FAQs\n- Payment methods and delivery times\n- Any other operational details\n\nIf a customer asks anything outside the knowledge base, reply politely and redirect to available info.\n\n---\n\n### 📌 Your Responsibilities\n1. **Greet and assist naturally, like a human.**\n2. **Understand what the customer wants to order.**\n3. **Check Menu to answer ALL product, price, and availability questions.**\n4. **Use FAQs for:\n   - Delivery charges\n   - Delivery area\n   - Payment method\n   - Operational timings\n   - Common questions**\n\n5. **If customer wants to order:**\n   - Ask for missing details:\n     - Quantity\n     - Item variations\n     - Delivery address\n     - Customer name\n     - Payment method (COD/Bank Transfer)\n   - Validate availability from Menu.\n\n6. **Confirm the order clearly before final processing.**\n   Example:  \n   “Please confirm: 2 Chicken Burgers + 1 Fries for delivery to Block A, Ali Street? Total Rs 900. Should I place your order?”\n\n7. **AFTER the customer confirms**, create the final machine-friendly ORDER RECORD.\n\n---\n\n### 📌 Order Output Format (VERY IMPORTANT)\nWhen the customer CONFIRMS the order, you MUST output:\n\n1) A single line ORDER RECORD exactly in this format:\n\n`ORDER_LINE|orderID|customerName|customerPhone|customerAddress|items_json|totalAmount|paymentMethod|confirmed`\n\nRules:\n- No extra words before or after.\n- `items_json` must be a valid JSON array of items:\n  Example: [{\"name\":\"Chicken Burger\",\"qty\":2,\"price\":450}]\n\n2) After that ORDER_LINE, send a **normal WhatsApp-friendly confirmation message** for the customer.\n\n---\n\n### 📌 orderID Rules\nGenerate a unique order ID like:\n`ORDER-{{current date + time in YYYYMMDD-HHmmss}}`\n\nExample:\n`ORDER-20251117-234501`\n\n---\n\n### 📌 Behaviour Rules\n- Always stay friendly, accurate, and helpful.\n- Always clarify missing info before placing order.\n- Never “invent” menu items or prices—ONLY use the Menu sheet.\n- Never output the ORDER_LINE unless customer explicitly confirms.\n- Never output more than ONE ORDER_LINE per confirmed order.\n- Always output ORDER_LINE first, then natural customer message.\n- Follow WhatsApp style: short, clear, natural.\n\n---\n\n### 📌 If Customer Cancels\nReply politely:\n“No problem! Your order has been cancelled. Let me know if you need anything else.”\n\nDo NOT output an ORDER_LINE.\n\n---\n\n### 📌 If Customer Asks About Past Orders\nUse Customers + Orders sheet to answer politely.\n\n---\n\n### 📌 If Customer Asks About Delivery Status\nCheck the Orders sheet (status field) and reply appropriately.\n\n---\n\n### 📌 IMPORTANT\nIf details are unclear or missing:\nAsk follow-up questions.\nNever assume details.\n\n### 📌 Confirmation Rules\n- If the customer replies with short positive confirmations such as:\n  \"Yes\", \"Confirm\", \"Ok\", \"Okay\", \"Theek hy\", \"Ji\", \"Haan\", \"Done\"\n  → Treat this as explicit confirmation of the order.\n- Immediately generate the ORDER_LINE and update the Google Sheet Orders with status = \"Confirmed\".\n\n### 📌 Cancellation Rules\n- If the customer replies with cancellation words such as:\n  \"Cancel\", \"No\", \"Nahi\", \"Not now\", \"Forget it\"\n  → Treat this as an explicit cancellation.\n- Generate an ORDER_LINE with status = \"Cancelled\" and update the Google Sheet Orders accordingly.\n- After logging, send a polite WhatsApp message:\n  \"No problem! Your order has been cancelled. Let me know if you need anything else.\"\n\n---\n\nYour goal:  \n**Provide a perfect customer ordering experience + deliver a clean ORDER_LINE for automation.**\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3cd1bd84-13fc-42ca-8bd6-c95ba2feb7dc",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1zG45OulibXMdkjPEbFTS3D1v8qP7_Y_Yw4DekE6oVng",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1zG45OulibXMdkjPEbFTS3D1v8qP7_Y_Yw4DekE6oVng/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        16,
+        256
+      ],
+      "id": "72beb0d5-d351-4e74-a3af-1b53f4fbe00c",
+      "name": "Menu",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tcHo4M0Sgp6Z7KFI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1BoZhUWyBVuntPPcBwARC5rgjvsZOmIP7SLcxYwbMKMg",
+          "mode": "list",
+          "cachedResultName": "Restaurant_Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1BoZhUWyBVuntPPcBwARC5rgjvsZOmIP7SLcxYwbMKMg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1163180423,
+          "mode": "list",
+          "cachedResultName": "FAQs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1BoZhUWyBVuntPPcBwARC5rgjvsZOmIP7SLcxYwbMKMg/edit#gid=1163180423"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        128,
+        256
+      ],
+      "id": "856290b6-9794-4dcf-b98f-9a62b0154b91",
+      "name": "FAQs",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tcHo4M0Sgp6Z7KFI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1X597ckXImLtIZ2OBBPk7QmZTXK_2K4vFY-LaSyFQHc8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1X597ckXImLtIZ2OBBPk7QmZTXK_2K4vFY-LaSyFQHc8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        256,
+        256
+      ],
+      "id": "ce2578bf-f797-4997-aeae-9dd488f86892",
+      "name": "Orders Taking",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tcHo4M0Sgp6Z7KFI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -272,
+        256
+      ],
+      "id": "c2908135-987e-4137-922a-677fc12f6190",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "57adKutjU2JLFv6n",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -336,
+        0
+      ],
+      "id": "e7399dea-cfd4-4b53-9574-b73ad51fe2f1",
+      "name": "Telegram Trigger",
+      "webhookId": "ea1d1595-2726-4a33-9f50-8e0ac9b8bba0",
+      "credentials": {
+        "telegramApi": {
+          "id": "2g3S5BpHrNeNVM6h",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "=hi {{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        352,
+        0
+      ],
+      "id": "4c2230b8-f456-4df6-a684-2f218d3c5ae3",
+      "name": "Send a text message",
+      "webhookId": "67d8e2d4-76c5-4b84-a935-fe1079971b47",
+      "credentials": {
+        "telegramApi": {
+          "id": "2g3S5BpHrNeNVM6h",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.update_id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -112,
+        256
+      ],
+      "id": "c321a009-07e1-4f21-97f7-6968a951b37a",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "pPWbI7OkVzdgOuG9",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Menu": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FAQs": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Orders Taking": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "025d0585-e633-4c32-8043-b76be86d79b1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e7a8bdd94c1c3e5223d23397c3a18270d2a5d3ab2b88410c64494c4dd371c439"
+  },
+  "id": "O-qn7iMIzdqrXATuA7eoL",
+  "tags": []
+}
